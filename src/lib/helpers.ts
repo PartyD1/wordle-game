@@ -1,19 +1,6 @@
-import { VALID_GUESSES, SOLUTIONS } from './words';
-
-export const WORD_LENGTH = 5;
-
 export type LetterStatus = 'correct' | 'present' | 'absent';
 
-export const getSolution = () => {
-  const today = new Date();
-  // Simple logic to get a "daily" word. Changes word each day of the month.
-  const index = today.getDate() % SOLUTIONS.length;
-  return SOLUTIONS[index].toUpperCase();
-};
-
-export const checkWordValidity = (word: string) => {
-  return VALID_GUESSES.includes(word.toLowerCase());
-};
+export const WORD_LENGTH = 5;
 
 export const getGuessStatuses = (guess: string, solution: string): LetterStatus[] => {
   const splitSolution = solution.split('');

@@ -2,7 +2,7 @@
 
 ## Core Features:
 
-- Word Retrieval: Fetch the daily word and valid word list from external APIs.
+- Word Retrieval: Fetch the daily word and valid word list from list of words
 - Guess Input: Accept user's word guess as input.
 - Guess Validation: Check if the guess is a valid word using the API.
 - Result Display: Display the results using the NYT Wordle color scheme (gray, yellow, green).

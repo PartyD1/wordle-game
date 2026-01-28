@@ -1,7 +1,6 @@
 import { Tile } from './Tile';
-import { getGuessStatuses } from '@/lib/helpers';
+import { getGuessStatuses, WORD_LENGTH } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
-import { WORD_LENGTH } from '@/lib/helpers';
 
 export function CompletedRow({
   guess,
