@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getGuessStatuses, LetterStatus, WORD_LENGTH } from '@/lib/helpers';
 import { Grid } from '@/components/wordle/Grid';
 import { Keyboard } from '@/components/wordle/Keyboard';
 import { GameEndModal } from '@/components/wordle/GameEndModal';
 
-const MAX_GUESSES = 6;
 const REVEAL_ANIMATION_DURATION = 1600;
 
 interface GameProps {
-  solution: string;
+  solutions: string[];
   validGuesses: string[];
 }
 
-export default function Game({ solution, validGuesses }: GameProps) {
+export default function Game({ solutions, validGuesses }: GameProps) {
   const { toast } = useToast();
+  const [solution, setSolution] = useState('');
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
   const [keyStatuses, setKeyStatuses] = useState<{ [key: string]: LetterStatus }>({});
@@ -25,12 +25,18 @@ export default function Game({ solution, validGuesses }: GameProps) {
   const [isGameLost, setIsGameLost] = useState(false);
   const [shakeCurrentRow, setShakeCurrentRow] = useState(false);
 
+  useEffect(() => {
+    setSolution(solutions[Math.floor(Math.random() * solutions.length)]);
+  }, [solutions]);
+  
+  const validGuessSet = useMemo(() => new Set(validGuesses), [validGuesses]);
+
   const checkWordValidity = (word: string) => {
-    return validGuesses.includes(word.toUpperCase());
+    return validGuessSet.has(word.toUpperCase());
   };
   
   const onChar = (value: string) => {
-    if (currentGuess.length < WORD_LENGTH && guesses.length < MAX_GUESSES && !isGameWon) {
+    if (currentGuess.length < WORD_LENGTH && guesses.length < 6 && !isGameWon) {
       setCurrentGuess((prev) => prev + value);
     }
   };
@@ -40,7 +46,7 @@ export default function Game({ solution, validGuesses }: GameProps) {
   };
 
   const onEnter = () => {
-    if (isGameWon || isGameLost) {
+    if (isGameWon || isGameLost || !solution) {
       return;
     }
 
@@ -76,7 +82,7 @@ export default function Game({ solution, validGuesses }: GameProps) {
 
       if (currentGuess.toUpperCase() === solution.toUpperCase()) {
         setIsGameWon(true);
-      } else if (newGuesses.length === MAX_GUESSES) {
+      } else if (newGuesses.length === 6) {
         setIsGameLost(true);
       }
 
@@ -85,7 +91,7 @@ export default function Game({ solution, validGuesses }: GameProps) {
   
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (isGameWon || isGameLost || isRevealing) return;
+      if (!solution || isGameWon || isGameLost || isRevealing) return;
 
       if (event.key === 'Enter') {
         onEnter();
@@ -95,13 +101,24 @@ export default function Game({ solution, validGuesses }: GameProps) {
         onChar(event.key.toUpperCase());
       }
     },
-    [currentGuess, isGameWon, isGameLost, isRevealing, onEnter, onDelete, onChar]
+    [solution, currentGuess, isGameWon, isGameLost, isRevealing, onEnter, onDelete, onChar]
   );
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+
+  if (!solution) {
+    return (
+      <div className="flex h-screen w-full flex-col items-center justify-center">
+        <header className="flex items-center justify-center w-full max-w-lg mx-auto mb-4">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-wider">WORDPLAY</h1>
+        </header>
+        <p>Loading game...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[100dvh] flex-col items-center justify-between p-2 sm:p-4">
