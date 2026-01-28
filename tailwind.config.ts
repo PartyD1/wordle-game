@@ -48,6 +48,7 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
+        correct: 'hsl(var(--correct))',
         chart: {
           '1': 'hsl(var(--chart-1))',
           '2': 'hsl(var(--chart-2))',
@@ -88,10 +89,29 @@ export default {
             height: '0',
           },
         },
+        'pop-in': {
+          'from': { transform: 'scale(0.8)', opacity: '0' },
+          '40%': { transform: 'scale(1.1)', opacity: '1' },
+          'to': { transform: 'scale(1)', opacity: '1' },
+        },
+        'tile-flip': {
+          '0%': { transform: 'rotateX(0deg)' },
+          '50%': { transform: 'rotateX(-90deg)' },
+          '100%': { transform: 'rotateX(0deg)' },
+        },
+        'shake': {
+          '10%, 90%': { transform: 'translateX(-1px)' },
+          '20%, 80%': { transform: 'translateX(2px)' },
+          '30%, 50%, 70%': { transform: 'translateX(-4px)' },
+          '40%, 60%': { transform: 'translateX(4px)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'pop-in': 'pop-in 0.15s ease-out',
+        'tile-flip': 'tile-flip 0.6s ease-in-out',
+        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
       },
     },
   },

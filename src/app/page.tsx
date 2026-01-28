@@ -1,3 +1,139 @@
+"use client";
+
+import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { getSolution, checkWordValidity, getGuessStatuses, LetterStatus } from '@/lib/helpers';
+import { Grid } from '@/components/wordle/Grid';
+import { Keyboard } from '@/components/wordle/Keyboard';
+import { GameEndModal } from '@/components/wordle/GameEndModal';
+
+const MAX_GUESSES = 6;
+const WORD_LENGTH = 5;
+const REVEAL_ANIMATION_DURATION = 1600;
+
 export default function Home() {
-  return <></>;
+  const { toast } = useToast();
+  const [solution, setSolution] = useState('');
+  const [guesses, setGuesses] = useState<string[]>([]);
+  const [currentGuess, setCurrentGuess] = useState('');
+  const [keyStatuses, setKeyStatuses] = useState<{ [key: string]: LetterStatus }>({});
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [isGameWon, setIsGameWon] = useState(false);
+  const [isGameLost, setIsGameLost] = useState(false);
+  const [shakeCurrentRow, setShakeCurrentRow] = useState(false);
+
+  const resetGame = useCallback(() => {
+    setSolution(getSolution());
+    setGuesses([]);
+    setCurrentGuess('');
+    setKeyStatuses({});
+    setIsGameWon(false);
+    setIsGameLost(false);
+    setIsRevealing(false);
+  }, []);
+
+  useEffect(() => {
+    if (!solution) {
+      resetGame();
+    }
+  }, [resetGame, solution]);
+
+  const onChar = (value: string) => {
+    if (currentGuess.length < WORD_LENGTH && guesses.length < MAX_GUESSES && !isGameWon) {
+      setCurrentGuess((prev) => prev + value);
+    }
+  };
+
+  const onDelete = () => {
+    setCurrentGuess((prev) => prev.slice(0, -1));
+  };
+
+  const onEnter = () => {
+    if (isGameWon || isGameLost) {
+      return;
+    }
+
+    if (currentGuess.length !== WORD_LENGTH) {
+      setShakeCurrentRow(true);
+      setTimeout(() => setShakeCurrentRow(false), 500);
+      return toast({ title: 'Not enough letters', variant: 'destructive' });
+    }
+
+    if (!checkWordValidity(currentGuess)) {
+      setShakeCurrentRow(true);
+      setTimeout(() => setShakeCurrentRow(false), 500);
+      return toast({ title: 'Not in word list', variant: 'destructive' });
+    }
+
+    setIsRevealing(true);
+    setTimeout(() => {
+      setIsRevealing(false);
+      const newGuesses = [...guesses, currentGuess];
+      setGuesses(newGuesses);
+
+      const newKeyStatuses = { ...keyStatuses };
+      const statuses = getGuessStatuses(currentGuess, solution);
+      currentGuess.split('').forEach((char, i) => {
+        const status = statuses[i];
+        if (newKeyStatuses[char] !== 'correct') {
+          newKeyStatuses[char] = status;
+        }
+      });
+      setKeyStatuses(newKeyStatuses);
+      
+      setCurrentGuess('');
+
+      if (currentGuess === solution) {
+        setIsGameWon(true);
+      } else if (newGuesses.length === MAX_GUESSES) {
+        setIsGameLost(true);
+      }
+
+    }, REVEAL_ANIMATION_DURATION);
+  };
+  
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (isGameWon || isGameLost || isRevealing) return;
+
+      if (event.key === 'Enter') {
+        onEnter();
+      } else if (event.key === 'Backspace') {
+        onDelete();
+      } else if (event.key.match(/^[a-zA-Z]$/)) {
+        onChar(event.key.toUpperCase());
+      }
+    },
+    [currentGuess, guesses, isGameWon, isGameLost, isRevealing, onEnter]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  return (
+    <div className="flex h-[100dvh] flex-col items-center justify-between p-2 sm:p-4">
+      <header className="flex items-center justify-center border-b pb-2 w-full max-w-lg mx-auto mb-2">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-wider">WORDPLAY</h1>
+      </header>
+      
+      <Grid
+        solution={solution}
+        guesses={guesses}
+        currentGuess={currentGuess}
+        isRevealing={isRevealing}
+        currentRowClassName={shakeCurrentRow ? 'animate-shake' : ''}
+      />
+      
+      <Keyboard onChar={onChar} onDelete={onDelete} onEnter={onEnter} keyStatuses={keyStatuses} />
+      
+      <GameEndModal
+        isOpen={isGameWon || isGameLost}
+        isGameWon={isGameWon}
+        solution={solution}
+        onClose={resetGame}
+      />
+    </div>
+  );
 }
