@@ -22,6 +22,7 @@ export function Tile({ char, status, isRevealing, isCompleted, position = 0 }: T
       'bg-correct border-correct text-primary-foreground': status === 'correct',
       'animate-pop-in': charExists && !isCompleted,
       'animate-tile-flip': isRevealing,
+      'delay-300': isRevealing,
     }
   );
 
@@ -29,11 +30,12 @@ export function Tile({ char, status, isRevealing, isCompleted, position = 0 }: T
     <div className="relative" style={{ perspective: '1000px' }}>
       <div
         className={tileClasses}
-        style={{ animationDelay: isRevealing ? `${position * 200}ms` : '0ms', animationDuration: isRevealing ? '600ms' : '150ms' }}
+        style={{
+          animationDelay: isRevealing ? `${position * 200}ms` : '0ms',
+          animationDuration: isRevealing ? '600ms' : '150ms',
+        }}
       >
-        <div className={cn({'transition-transform duration-300': isRevealing, 'delay-300': isRevealing, 'rotate-x-180': isRevealing})}>
-          {char}
-        </div>
+        {char}
       </div>
     </div>
   );
