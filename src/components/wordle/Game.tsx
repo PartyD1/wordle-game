@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -140,9 +141,9 @@ export default function Game({ solutions, validGuesses }: GameProps) {
       <header className="flex items-center justify-center relative border-b pb-2 w-full max-w-lg mx-auto mb-2">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-wider">WORDPLAY</h1>
         {(isGameWon || isGameLost) && (
-          <Button onClick={resetGame} size="icon" variant="ghost" className="absolute right-0">
-            <RefreshCw />
-            <span className="sr-only">Play Again</span>
+          <Button onClick={resetGame} variant="outline" className="absolute right-0">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Play Again
           </Button>
         )}
       </header>
