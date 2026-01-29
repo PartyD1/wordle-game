@@ -6,6 +6,8 @@ import { getGuessStatuses, LetterStatus, WORD_LENGTH } from '@/lib/helpers';
 import { Grid } from '@/components/wordle/Grid';
 import { Keyboard } from '@/components/wordle/Keyboard';
 import { GameEndModal } from '@/components/wordle/GameEndModal';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
 const REVEAL_ANIMATION_DURATION = 0;
 
@@ -24,12 +26,23 @@ export default function Game({ solutions, validGuesses }: GameProps) {
   const [isGameWon, setIsGameWon] = useState(false);
   const [isGameLost, setIsGameLost] = useState(false);
   const [shakeCurrentRow, setShakeCurrentRow] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     setSolution(solutions[Math.floor(Math.random() * solutions.length)]);
   }, [solutions]);
   
   const validGuessSet = useMemo(() => new Set(validGuesses), [validGuesses]);
+
+  const resetGame = useCallback(() => {
+    setSolution(solutions[Math.floor(Math.random() * solutions.length)]);
+    setGuesses([]);
+    setCurrentGuess('');
+    setKeyStatuses({});
+    setIsGameWon(false);
+    setIsGameLost(false);
+    setIsModalOpen(false);
+  }, [solutions]);
 
   const checkWordValidity = (word: string) => {
     return validGuessSet.has(word.toUpperCase());
@@ -82,8 +95,10 @@ export default function Game({ solutions, validGuesses }: GameProps) {
 
       if (currentGuess.toUpperCase() === solution.toUpperCase()) {
         setIsGameWon(true);
+        setTimeout(() => setIsModalOpen(true), 500);
       } else if (newGuesses.length === 6) {
         setIsGameLost(true);
+        setTimeout(() => setIsModalOpen(true), 500);
       }
 
     }, REVEAL_ANIMATION_DURATION);
@@ -91,7 +106,7 @@ export default function Game({ solutions, validGuesses }: GameProps) {
   
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (!solution || isGameWon || isGameLost || isRevealing) return;
+      if (isGameWon || isGameLost || isRevealing) return;
 
       if (event.key === 'Enter') {
         onEnter();
@@ -101,7 +116,7 @@ export default function Game({ solutions, validGuesses }: GameProps) {
         onChar(event.key.toUpperCase());
       }
     },
-    [solution, currentGuess, isGameWon, isGameLost, isRevealing, onEnter, onDelete, onChar]
+    [isGameWon, isGameLost, isRevealing, onEnter, onDelete, onChar]
   );
 
   useEffect(() => {
@@ -122,8 +137,14 @@ export default function Game({ solutions, validGuesses }: GameProps) {
 
   return (
     <div className="flex h-[100dvh] flex-col items-center justify-between p-2 sm:p-4">
-      <header className="flex items-center justify-center border-b pb-2 w-full max-w-lg mx-auto mb-2">
+      <header className="flex items-center justify-center relative border-b pb-2 w-full max-w-lg mx-auto mb-2">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-wider">WORDPLAY</h1>
+        {(isGameWon || isGameLost) && (
+          <Button onClick={resetGame} size="icon" variant="ghost" className="absolute right-0">
+            <RefreshCw />
+            <span className="sr-only">Play Again</span>
+          </Button>
+        )}
       </header>
       
       <Grid
@@ -134,13 +155,13 @@ export default function Game({ solutions, validGuesses }: GameProps) {
         currentRowClassName={shakeCurrentRow ? 'animate-shake' : ''}
       />
       
-      <Keyboard onChar={onChar} onDelete={onDelete} onEnter={onEnter} keyStatuses={keyStatuses} />
+      <Keyboard onChar={onChar} onDelete={onDelete} onEnter={onEnter} keyStatuses={keyStatuses} disabled={isGameWon || isGameLost}/>
       
       <GameEndModal
-        isOpen={isGameWon || isGameLost}
+        isOpen={isModalOpen}
         isGameWon={isGameWon}
         solution={solution}
-        onClose={() => window.location.reload()}
+        onClose={() => setIsModalOpen(false)}
       />
     </div>
   );

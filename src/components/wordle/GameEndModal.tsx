@@ -28,7 +28,7 @@ export function GameEndModal({ isOpen, isGameWon, solution, onClose }: GameEndMo
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogAction onClick={onClose}>Play Again</AlertDialogAction>
+          <AlertDialogAction onClick={onClose}>Close</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
