@@ -94,11 +94,6 @@ export default {
           '40%': { transform: 'scale(1.1)', opacity: '1' },
           'to': { transform: 'scale(1)', opacity: '1' },
         },
-        'tile-flip': {
-          '0%': { transform: 'rotateX(0deg)' },
-          '50%': { transform: 'rotateX(-90deg)' },
-          '100%': { transform: 'rotateX(0deg)' },
-        },
         'shake': {
           '10%, 90%': { transform: 'translateX(-1px)' },
           '20%, 80%': { transform: 'translateX(2px)' },
@@ -110,7 +105,6 @@ export default {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'pop-in': 'pop-in 0.15s ease-out',
-        'tile-flip': 'tile-flip 0.6s ease-in-out',
         'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
       },
     },

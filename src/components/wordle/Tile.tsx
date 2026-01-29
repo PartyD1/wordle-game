@@ -13,7 +13,7 @@ export function Tile({ char, status, isRevealing, isCompleted, position = 0 }: T
   const charExists = char && char !== ' ';
 
   const tileClasses = cn(
-    'flex items-center justify-center h-14 w-14 sm:w-16 sm:h-16 border-2 text-2xl sm:text-3xl font-bold uppercase rounded transition-colors',
+    'flex items-center justify-center h-14 w-14 sm:w-16 sm:h-16 border-2 text-2xl sm:text-3xl font-bold uppercase rounded',
     {
       'bg-transparent border-border': !status,
       'border-muted-foreground': charExists && !status,
@@ -21,22 +21,17 @@ export function Tile({ char, status, isRevealing, isCompleted, position = 0 }: T
       'bg-accent border-accent text-accent-foreground': status === 'present',
       'bg-correct border-correct text-primary-foreground': status === 'correct',
       'animate-pop-in': charExists && !isCompleted,
-      'animate-tile-flip': isRevealing,
-      'delay-300': isRevealing,
     }
   );
 
   return (
-    <div className="relative" style={{ perspective: '1000px' }}>
-      <div
-        className={tileClasses}
-        style={{
-          animationDelay: isRevealing ? `${position * 200}ms` : '0ms',
-          animationDuration: isRevealing ? '600ms' : '150ms',
-        }}
-      >
-        {char}
-      </div>
+    <div
+      className={tileClasses}
+      style={{
+        animationDuration: '150ms',
+      }}
+    >
+      {char}
     </div>
   );
 }

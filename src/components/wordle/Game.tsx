@@ -7,7 +7,7 @@ import { Grid } from '@/components/wordle/Grid';
 import { Keyboard } from '@/components/wordle/Keyboard';
 import { GameEndModal } from '@/components/wordle/GameEndModal';
 
-const REVEAL_ANIMATION_DURATION = 1600;
+const REVEAL_ANIMATION_DURATION = 0;
 
 interface GameProps {
   solutions: string[];
