@@ -19,10 +19,19 @@ export function Grid({ solution, guesses, currentGuess, isRevealing, currentRowC
             key={i}
             solution={solution}
             guess={guess}
-            isRevealing={isRevealing && guesses.length - 1 === i}
           />
         ))}
-        {guesses.length < 6 && <CurrentRow guess={currentGuess} className={currentRowClassName} />}
+        {guesses.length < 6 && (
+          isRevealing ? (
+            <CompletedRow 
+              solution={solution}
+              guess={currentGuess}
+              isRevealing={true}
+            />
+          ) : (
+            <CurrentRow guess={currentGuess} className={currentRowClassName} />
+          )
+        )}
         {empties.map((_, i) => (
           <EmptyRow key={i} />
         ))}
