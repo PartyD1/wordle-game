@@ -10,7 +10,7 @@ To run the development server:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:9002](http://localhost:9002) with your browser to see the result.
 
 ## Project Structure
 
@@ -26,7 +26,7 @@ Here's a breakdown of the key files and directories in the project:
 -   `allowed_answers.txt`: A list of all possible solutions for the word puzzle. A word is chosen from this list at the start of each game.
 -   `allowed_guesses.txt`: A comprehensive list of all valid words that a player can guess. This includes all the words from `allowed_answers.txt` plus many more.
 
-### `src/app`
+### `app/`
 
 This directory contains the core of the Next.js application, following the App Router paradigm.
 
@@ -34,7 +34,7 @@ This directory contains the core of the Next.js application, following the App R
 -   `layout.tsx`: The root layout for the entire application. It sets up the basic HTML structure, including `<html>` and `<body>` tags, and applies global fonts.
 -   `page.tsx`: The main page of the application. It reads the word lists from the text files and passes them to the main `Game` component.
 
-### `src/components`
+### `components/`
 
 This directory is organized into two main sub-directories:
 
@@ -47,11 +47,11 @@ This directory is organized into two main sub-directories:
     -   `Keyboard.tsx`: The on-screen keyboard that allows users to input guesses. The keys change color to reflect the status of each letter.
     -   `GameEndModal.tsx`: A dialog that appears at the end of the game to inform the player if they've won or lost, and what the correct word was.
 
-### `src/hooks`
+### `hooks/`
 
 -   `use-toast.ts`: A custom React hook for triggering and managing toast notifications, used for providing feedback to the user (e.g., "Not in word list").
 
-### `src/lib`
+### `lib/`
 
 -   `helpers.ts`: Contains core game logic functions, such as `getGuessStatuses`, which determines the status (correct, present, absent) of each letter in a guess.
 -   `utils.ts`: Contains utility functions. The `cn` function is a helper for conditionally combining Tailwind CSS classes.
