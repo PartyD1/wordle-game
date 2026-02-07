@@ -53,3 +53,11 @@ export function addGameResult(dayIndex: number, won: boolean, guessCount: number
     // ignore
   }
 }
+
+export function formatStatsForToast(stats: GameStats): string {
+  const winPct =
+    stats.gamesPlayed > 0
+      ? Math.round((stats.wins / stats.gamesPlayed) * 100)
+      : 0;
+  return `Played: ${stats.gamesPlayed} · Win %: ${winPct} · Wins: ${stats.wins}`;
+}

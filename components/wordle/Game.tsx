@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getGuessStatuses, LetterStatus, WORD_LENGTH } from '@/lib/helpers';
 import { getDayIndex, getDailySolution } from '@/lib/daily';
-import { addGameResult } from '@/lib/stats';
+import { addGameResult, getStats, formatStatsForToast } from '@/lib/stats';
 import { Grid } from '@/components/wordle/Grid';
 import { Keyboard } from '@/components/wordle/Keyboard';
 import { GameEndModal } from '@/components/wordle/GameEndModal';
@@ -159,10 +159,27 @@ export default function Game({ solutions, validGuesses }: GameProps) {
       if (currentGuess.toUpperCase() === solution.toUpperCase()) {
         setIsGameWon(true);
         addGameResult(dayIndex, true, newGuesses.length);
+        if (typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          import('canvas-confetti').then(({ default: confetti }) => {
+            confetti({
+              particleCount: 80,
+              spread: 70,
+              origin: { y: 0.6 },
+            });
+          });
+        }
+        toast({
+          title: 'You won!',
+          description: formatStatsForToast(getStats()),
+        });
         setTimeout(() => setIsModalOpen(true), 500);
       } else if (newGuesses.length === 6) {
         setIsGameLost(true);
         addGameResult(dayIndex, false, 6);
+        toast({
+          title: 'Nice try!',
+          description: formatStatsForToast(getStats()),
+        });
         setTimeout(() => setIsModalOpen(true), 500);
       }
 
