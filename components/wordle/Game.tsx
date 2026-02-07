@@ -1,9 +1,10 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getGuessStatuses, LetterStatus, WORD_LENGTH } from '@/lib/helpers';
+import { getDayIndex, getDailySolution } from '@/lib/daily';
 import { Grid } from '@/components/wordle/Grid';
 import { Keyboard } from '@/components/wordle/Keyboard';
 import { GameEndModal } from '@/components/wordle/GameEndModal';
@@ -11,6 +12,15 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 
 const REVEAL_ANIMATION_DURATION = 0;
+const STORAGE_KEY = 'wordplay-game-state';
+
+interface StoredState {
+  dayIndex: number;
+  guesses: string[];
+  currentGuess: string;
+  isGameWon: boolean;
+  isGameLost: boolean;
+}
 
 interface GameProps {
   solutions: string[];
@@ -19,6 +29,7 @@ interface GameProps {
 
 export default function Game({ solutions, validGuesses }: GameProps) {
   const { toast } = useToast();
+  const hasRestoredRef = useRef(false);
   const [solution, setSolution] = useState('');
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
@@ -29,21 +40,73 @@ export default function Game({ solutions, validGuesses }: GameProps) {
   const [shakeCurrentRow, setShakeCurrentRow] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Set daily solution and restore state from localStorage (once per mount)
   useEffect(() => {
-    setSolution(solutions[Math.floor(Math.random() * solutions.length)]);
+    if (solutions.length === 0) return;
+    const dayIndex = getDayIndex();
+    const dailySolution = getDailySolution(solutions);
+    setSolution(dailySolution);
+
+    if (hasRestoredRef.current) return;
+    hasRestoredRef.current = true;
+
+    try {
+      const raw = typeof window !== 'undefined' && window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const stored: StoredState = JSON.parse(raw);
+      if (stored.dayIndex !== dayIndex) return;
+
+      setGuesses(stored.guesses ?? []);
+      setCurrentGuess(stored.currentGuess ?? '');
+      setIsGameWon(!!stored.isGameWon);
+      setIsGameLost(!!stored.isGameLost);
+      if (stored.isGameWon || stored.isGameLost) {
+        setIsModalOpen(true);
+      }
+
+      const mergedKeyStatuses: { [key: string]: LetterStatus } = {};
+      (stored.guesses ?? []).forEach((guess) => {
+        const statuses = getGuessStatuses(guess, dailySolution);
+        guess.split('').forEach((char, i) => {
+          if (mergedKeyStatuses[char] !== 'correct') {
+            mergedKeyStatuses[char] = statuses[i];
+          }
+        });
+      });
+      setKeyStatuses(mergedKeyStatuses);
+    } catch {
+      // ignore invalid or old stored state
+    }
   }, [solutions]);
-  
+
+  // Persist state to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window === 'undefined' || !solution) return;
+    const dayIndex = getDayIndex();
+    const toStore: StoredState = {
+      dayIndex,
+      guesses,
+      currentGuess,
+      isGameWon,
+      isGameLost,
+    };
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+    } catch {
+      // ignore quota or other errors
+    }
+  }, [solution, guesses, currentGuess, isGameWon, isGameLost]);
+
   const validGuessSet = useMemo(() => new Set(validGuesses), [validGuesses]);
 
   const resetGame = useCallback(() => {
-    setSolution(solutions[Math.floor(Math.random() * solutions.length)]);
     setGuesses([]);
     setCurrentGuess('');
     setKeyStatuses({});
     setIsGameWon(false);
     setIsGameLost(false);
     setIsModalOpen(false);
-  }, [solutions]);
+  }, []);
 
   const checkWordValidity = (word: string) => {
     return validGuessSet.has(word.toUpperCase());
