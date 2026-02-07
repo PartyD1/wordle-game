@@ -8,10 +8,8 @@ import { getDayIndex, getDailySolution } from '@/lib/daily';
 import { Grid } from '@/components/wordle/Grid';
 import { Keyboard } from '@/components/wordle/Keyboard';
 import { GameEndModal } from '@/components/wordle/GameEndModal';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
-
-const REVEAL_ANIMATION_DURATION = 0;
+// Stagger (125ms × 5 tiles) + flip duration (400ms)
+const REVEAL_ANIMATION_DURATION_MS = 5 * 125 + 400;
 const STORAGE_KEY = 'wordplay-game-state';
 
 interface StoredState {
@@ -99,15 +97,6 @@ export default function Game({ solutions, validGuesses }: GameProps) {
 
   const validGuessSet = useMemo(() => new Set(validGuesses), [validGuesses]);
 
-  const resetGame = useCallback(() => {
-    setGuesses([]);
-    setCurrentGuess('');
-    setKeyStatuses({});
-    setIsGameWon(false);
-    setIsGameLost(false);
-    setIsModalOpen(false);
-  }, []);
-
   const checkWordValidity = (word: string) => {
     return validGuessSet.has(word.toUpperCase());
   };
@@ -165,7 +154,7 @@ export default function Game({ solutions, validGuesses }: GameProps) {
         setTimeout(() => setIsModalOpen(true), 500);
       }
 
-    }, REVEAL_ANIMATION_DURATION);
+    }, REVEAL_ANIMATION_DURATION_MS);
   };
   
   const handleKeyDown = useCallback(
@@ -213,13 +202,6 @@ export default function Game({ solutions, validGuesses }: GameProps) {
           isRevealing={isRevealing}
           currentRowClassName={shakeCurrentRow ? 'animate-shake' : ''}
         />
-
-        {(isGameWon || isGameLost) && (
-            <Button onClick={resetGame} variant="outline" size="lg" className="my-4">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Play Again
-            </Button>
-        )}
       </div>
       
       <div className="shrink-0 w-full flex justify-center pb-2">
