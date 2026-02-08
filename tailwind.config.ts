@@ -101,12 +101,17 @@ export default {
           '30%, 50%, 70%': { transform: 'translateX(-4px)' },
           '40%, 60%': { transform: 'translateX(4px)' },
         },
+        'flip': {
+          '0%': { transform: 'rotateX(0deg)' },
+          '100%': { transform: 'rotateX(180deg)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'pop-in': 'pop-in 0.15s ease-out',
         'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+        'flip': 'flip 0.4s ease-in-out forwards',
       },
     },
   },
