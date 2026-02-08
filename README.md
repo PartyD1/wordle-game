@@ -1,57 +1,109 @@
 # WordPlay: A Daily Word Puzzle Game
 
-This project is a web-based word puzzle game, similar to Wordle. It's built with Next.js and React, and styled with Tailwind CSS.
+A web-based daily word puzzle game inspired by Wordle. Guess the 5-letter word in 6 tries using color-coded feedback. Built with **Next.js 15**, **React 19**, and **Tailwind CSS**, with a daily puzzle that resets once per day (UTC).
+
+## Features
+
+- **Daily puzzle** — One solution per day for everyone (UTC). Same word globally for a given calendar day; epoch aligned Wordle-style (June 19, 2021).
+- **6×5 grid** — Up to 6 guesses, each a 5-letter word. Tiles flip with staggered animation on submit.
+- **Tile feedback** — Green (correct spot), yellow (in word, wrong spot), gray (not in word).
+- **Input** — On-screen keyboard plus physical keyboard support (letters, Enter, Backspace).
+- **Validation** — Only valid 5-letter words from the combined answer and guess lists are accepted; invalid guesses trigger a shake animation and toast.
+- **Persistence** — Game state (guesses, current guess, win/loss) is saved in `localStorage` so you can resume the same day across sessions.
+- **Statistics** — Games played, win count, win percentage, and guess distribution (wins by 1–6 tries) stored in `localStorage` and shown in a stats modal.
+- **Rules modal** — “How to play” dialog explaining the game and tile colors.
+- **Deployment** — Configured for Firebase App Hosting via `apphosting.yaml`.
+
+## Tech Stack
+
+- **Framework:** Next.js 15 (App Router), React 19
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS, tailwindcss-animate
+- **UI:** ShadCN-style components (Radix UI primitives: AlertDialog, Toast, Button), Lucide React icons
+- **Charts:** Recharts (stats distribution)
+- **Utilities:** date-fns, clsx, tailwind-merge, class-variance-authority
+- **Deployment:** Firebase App Hosting (standalone Next.js build)
 
 ## Getting Started
 
-To run the development server:
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- npm
+
+### Install and run
 
 ```bash
+npm install
 npm run dev
 ```
 
-Open [http://localhost:9002](http://localhost:9002) with your browser to see the result.
+Open [http://localhost:9002](http://localhost:9002) in your browser. The dev server uses Turbopack and is bound to `0.0.0.0` so you can access it from other devices on your network.
+
+### Other scripts
+
+- `npm run build` — Production build (standalone output for deployment).
+- `npm start` — Run production server (used by Firebase App Hosting).
+- `npm run lint` — Run Next.js ESLint.
+- `npm run typecheck` — Run TypeScript compiler check (`tsc --noEmit`).
 
 ## Project Structure
 
-Here's a breakdown of the key files and directories in the project:
+### Root
 
-### Root Directory
-
--   `apphosting.yaml`: Configuration file for deploying the application to Firebase App Hosting.
--   `next.config.ts`: The configuration file for Next.js. It's set up for standalone output for optimized deployment.
--   `package.json`: Defines the project's dependencies and scripts.
--   `tailwind.config.ts`: Configuration for the Tailwind CSS utility-first framework.
--   `tsconfig.json`: The configuration file for the TypeScript compiler.
--   `allowed_answers.txt`: A list of all possible solutions for the word puzzle. A word is chosen from this list at the start of each game.
--   `allowed_guesses.txt`: A comprehensive list of all valid words that a player can guess. This includes all the words from `allowed_answers.txt` plus many more.
+| File / directory      | Description |
+|------------------------|-------------|
+| `apphosting.yaml`      | Firebase App Hosting config (e.g. `command: npm start`, `maxInstances`). |
+| `next.config.ts`       | Next.js config: standalone output, TypeScript/ESLint ignore during builds, remote image patterns. |
+| `package.json`         | Dependencies and scripts (dev on port 9002 with Turbopack). |
+| `tailwind.config.ts`   | Tailwind CSS configuration. |
+| `tsconfig.json`        | TypeScript configuration. |
+| `allowed_answers.txt`  | List of possible daily solutions (~2,315 words). One word per line; the daily solution is chosen from this list by a deterministic index derived from the current UTC day. |
+| `allowed_guesses.txt`  | Extended list of valid guess words (~10,657 words). Combined with `allowed_answers.txt` to form the full set of accepted guesses. |
 
 ### `app/`
 
-This directory contains the core of the Next.js application, following the App Router paradigm.
-
--   `globals.css`: Contains global styles and CSS variables for theming, using Tailwind CSS's `@layer` directive. The color scheme is defined here using HSL values for easy customization.
--   `layout.tsx`: The root layout for the entire application. It sets up the basic HTML structure, including `<html>` and `<body>` tags, and applies global fonts.
--   `page.tsx`: The main page of the application. It reads the word lists from the text files and passes them to the main `Game` component.
+- **`globals.css`** — Global styles and CSS variables (e.g. theme colors in HSL) using Tailwind `@layer`.
+- **`layout.tsx`** — Root layout: `<html>`, `<body>`, global fonts.
+- **`page.tsx`** — Home page: reads `allowed_answers.txt` and `allowed_guesses.txt` at build time, deduplicates into `solutions` and `validGuesses`, and renders the main `Game` component.
 
 ### `components/`
 
-This directory is organized into two main sub-directories:
+- **`ui/`** — Reusable UI built with Radix/shadcn-style components:
+  - `alert-dialog.tsx` — Modal dialog (used for Rules, Stats, Game End).
+  - `button.tsx` — Button component.
+  - `toast.tsx` / `toaster.tsx` — Toast notifications (e.g. “Not in word list”, “Not enough letters”).
 
--   `ui/`: Contains reusable, general-purpose UI components built with ShadCN UI. These components (`Button`, `AlertDialog`, `Toast`) are used to build the application's interface.
--   `wordle/`: Contains components that are specific to the Wordle game itself.
-    -   `Game.tsx`: The main stateful component that manages the entire game flow, including the current guess, past guesses, game state (win/loss), and user input.
-    -   `Grid.tsx`: Renders the 6x5 grid of tiles, displaying completed rows, the current row being typed, and empty rows.
-    -   `Row.tsx`: Defines the different types of rows in the grid: `CompletedRow`, `CurrentRow`, and `EmptyRow`.
-    -   `Tile.tsx`: Represents a single letter tile in the grid. Its appearance changes based on whether the letter is correct, present, or absent in the solution word.
-    -   `Keyboard.tsx`: The on-screen keyboard that allows users to input guesses. The keys change color to reflect the status of each letter.
-    -   `GameEndModal.tsx`: A dialog that appears at the end of the game to inform the player if they've won or lost, and what the correct word was.
+- **`wordle/`** — Game-specific components:
+  - **`Game.tsx`** — Main game controller: daily solution (via `lib/daily`), state (guesses, current guess, key statuses, win/loss, modals), persistence to `localStorage`, keyboard handler, and orchestration of grid, keyboard, and modals. Triggers flip animation and records stats on game end via `lib/stats`.
+  - **`Grid.tsx`** — Renders the 6×5 grid: completed rows, current row (with optional shake), empty rows.
+  - **`Row.tsx`** — Row variants: `CompletedRow`, `CurrentRow`, `EmptyRow`.
+  - **`Tile.tsx`** — Single letter tile; appearance by status (correct / present / absent) and flip animation.
+  - **`Keyboard.tsx`** — On-screen keyboard; key colors reflect letter status.
+  - **`GameEndModal.tsx`** — End-of-game dialog: win/loss, solution word, close action.
+  - **`RulesModal.tsx`** — “How to play” dialog: rules and tile color legend.
+  - **`StatsModal.tsx`** — Statistics dialog: games played, win %, wins, and guess distribution bar chart (Recharts).
 
 ### `hooks/`
 
--   `use-toast.ts`: A custom React hook for triggering and managing toast notifications, used for providing feedback to the user (e.g., "Not in word list").
+- **`use-toast.ts`** — Hook for showing and managing toast notifications.
 
 ### `lib/`
 
--   `helpers.ts`: Contains core game logic functions, such as `getGuessStatuses`, which determines the status (correct, present, absent) of each letter in a guess.
--   `utils.ts`: Contains utility functions. The `cn` function is a helper for conditionally combining Tailwind CSS classes.
+- **`helpers.ts`** — Core game logic: `WORD_LENGTH` (5), `LetterStatus` type, `getGuessStatuses(guess, solution)` for correct/present/absent per letter.
+- **`daily.ts`** — Daily puzzle index: `getDayIndex()` (UTC days since epoch), `getDailySolution(solutions)` to pick the day’s word from the solutions array.
+- **`stats.ts`** — Statistics: `getStats()` / `addGameResult(dayIndex, won, guessCount)`, stored in `localStorage` under `wordplay-stats`; tracks games played, wins, wins-by-guess-count, and last completed day to avoid double-counting.
+- **`utils.ts`** — Utilities such as `cn()` for conditional Tailwind class names.
+
+## Word Lists
+
+- **Solutions:** `allowed_answers.txt` — one 5-letter word per line, uppercase when loaded. Used as the pool for the daily solution.
+- **Guesses:** Union of `allowed_answers.txt` and `allowed_guesses.txt`, deduplicated. Only words in this set are accepted as guesses.
+
+## Deployment
+
+The app is set up for **Firebase App Hosting**. Build produces a standalone Next.js app; `apphosting.yaml` specifies `npm start` and instance limits. Deploy via your Firebase project’s App Hosting workflow.
+
+## License
+
+Private project; see repository or author for terms.
